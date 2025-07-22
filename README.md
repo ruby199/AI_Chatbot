@@ -77,8 +77,6 @@ http://localhost:3000 에서 챗봇을 사용할 수 있습니다.
 
 <img width="1482" height="1508" alt="image" src="https://github.com/user-attachments/assets/0bd14da4-2f3f-48dc-8aa6-d49496121b5c" />
 
-4. Gemini API 할당량 확인
-
 ## 라이선스
 
 MIT License
