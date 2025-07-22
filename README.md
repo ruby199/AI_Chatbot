@@ -72,7 +72,12 @@ http://localhost:3000 에서 챗봇을 사용할 수 있습니다.
 만약 API 오류가 발생한다면:
 1. `.env` 파일의 API 키가 올바른지 확인
 2. 인터넷 연결 상태 확인
-3. Gemini API 할당량 확인
+
+## Demo
+
+<img width="1482" height="1508" alt="image" src="https://github.com/user-attachments/assets/0bd14da4-2f3f-48dc-8aa6-d49496121b5c" />
+
+4. Gemini API 할당량 확인
 
 ## 라이선스
 
