@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>룹룹이의 AI 쳇봇</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 85%;
+            animation: slideIn 0.4s ease-out;
+            margin-bottom: 20px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+        }
+
+        .message-content {
+            padding: 20px 25px;
+            border-radius: 20px;
+            font-size: 1em;
+            line-height: 1.6;
+            word-wrap: break-word;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-message .message-content {
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            color: white;
+            border-bottom-right-radius: 8px;
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .user-message .message-content::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            right: 15px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 8px solid #c44569;
+        }
+
+        .bot-message .message-content {
+            background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+            color: #831843;
+            border: 1px solid #fce7f3;
+            border-bottom-left-radius: 8px;
+            box-shadow: 0 6px 20px rgba(255, 182, 193, 0.2);
+        }
+
+        .bot-message .message-content::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 15px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 8px solid #fdf2f8;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-message .message-avatar {
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            color: white;
+            align-self: flex-end;
+        }
+
+        .bot-message .message-avatar {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            align-self: flex-start;
+        }
+
+        .message-time {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .bot-message .message-time {
+            text-align: left;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 1em;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        #messageInput:focus {
+            border-color: #ff6b9d;
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+
+        .send-button {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-info {
+            text-align: right;
+            font-size: 0.8em;
+            color: #6c757d;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+        }
+
+        .loading-dots {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .loading-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff6b9d;
+            animation: bounce 1.4s ease-in-out infinite both;
+        }
+
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        .error-message {
+            background: #f8d7da !important;
+            color: #721c24 !important;
+            border: 1px solid #f5c6cb !important;
+        }
+
+        .api-key-container {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .api-key-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+
+        .api-key-button {
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .api-key-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.3);
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .file-upload-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-button {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .file-upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .file-upload-button input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .uploaded-file {
+            background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+            border: 1px solid #f3e8ff;
+            border-radius: 15px;
+            padding: 10px 15px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #831843;
+        }
+
+        .file-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8em;
+        }
+
+        .remove-file {
+            background: none;
+            border: none;
+            color: #be185d;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .remove-file:hover {
+            background: #fce7f3;
+            transform: scale(1.1);
+        }
+
+        .file-preview {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                height: 100vh;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            
+            .header {
+                border-radius: 0;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .chat-messages {
+                padding: 15px;
+            }
+            
+            .chat-input-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🤖 Gemini 2.5 Flash 챗봇</h1>
+            <p>AI와 대화해보세요!</p>
+        </header>
+        
+        <div id="apiKeyContainer" class="api-key-container">
+            <h3>🔑 API 키 설정</h3>
+            <p>Gemini API 키를 입력해주세요:</p>
+            <input type="password" id="apiKeyInput" class="api-key-input" 
+                   placeholder="AIzaSy..." value="AIzaSyAV33zKOZ8ms0iuIA4oxnJtQa2u_l1AYRE">
+            <button id="saveApiKey" class="api-key-button">저장</button>
+        </div>
+        
+        <div class="chat-container" id="chatContainer" style="display: none;">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <strong>AI:</strong> 안녕하세요! 무엇을 도와드릴까요?
+                    </div>
+                    <div class="message-time" id="initialTime"></div>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <div class="file-upload-container">
+                    <label class="file-upload-button">
+                        📎 파일 첨부
+                        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" multiple>
+                    </label>
+                    <span style="font-size: 0.8em; color: #be185d;">PDF, 이미지 파일 지원</span>
+                </div>
+                <div id="uploadedFiles"></div>
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        placeholder="메시지를 입력하세요..." 
+                        maxlength="1000"
+                    >
+                    <button id="sendButton" class="send-button">
+                        <span class="send-icon">➤</span>
+                    </button>
+                </div>
+                <div class="input-info">
+                    <span id="charCount">0</span>/1000
+                </div>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <p>AI가 응답을 생성하고 있습니다...</p>
+        </div>
+    </div>
+
+    <script>
+        class GeminiChatbot {
+            constructor() {
+                this.apiKey = '';
+                this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+                
+                this.initializeElements();
+                this.initializeEventListeners();
+                this.checkApiKey();
+            }
+
+            initializeElements() {
+                this.apiKeyContainer = document.getElementById('apiKeyContainer');
+                this.apiKeyInput = document.getElementById('apiKeyInput');
+                this.saveApiKeyBtn = document.getElementById('saveApiKey');
+                this.chatContainer = document.getElementById('chatContainer');
+                this.chatMessages = document.getElementById('chatMessages');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.loading = document.getElementById('loading');
+                this.charCount = document.getElementById('charCount');
+                this.fileInput = document.getElementById('fileInput');
+                this.uploadedFiles = document.getElementById('uploadedFiles');
+                this.currentFiles = [];
+            }
+
+            initializeEventListeners() {
+                // API 키 저장
+                this.saveApiKeyBtn.addEventListener('click', () => this.saveApiKey());
+                this.apiKeyInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.saveApiKey();
+                });
+
+                // 채팅 기능
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+
+                // 글자 수 카운터
+                this.messageInput.addEventListener('input', () => {
+                    const count = this.messageInput.value.length;
+                    this.charCount.textContent = count;
+                    
+                    if (count > 900) {
+                        this.charCount.style.color = '#dc3545';
+                    } else if (count > 800) {
+                        this.charCount.style.color = '#ffc107';
+                    } else {
+                        this.charCount.style.color = '#6c757d';
+                    }
+                });
+
+                // 파일 업로드
+                this.fileInput.addEventListener('change', (e) => {
+                    this.handleFileUpload(e.target.files);
+                });
+            }
+
+            checkApiKey() {
+                const savedKey = localStorage.getItem('gemini_api_key');
+                if (savedKey) {
+                    this.apiKey = savedKey;
+                    this.showChatInterface();
+                } else if (this.apiKeyInput.value.trim()) {
+                    // 기본값이 있으면 자동으로 저장
+                    this.saveApiKey();
+                }
+            }
+
+            saveApiKey() {
+                const key = this.apiKeyInput.value.trim();
+                if (!key) {
+                    this.showError('API 키를 입력해주세요.');
+                    return;
+                }
+
+                if (!key.startsWith('AIzaSy')) {
+                    this.showError('올바른 Gemini API 키 형식이 아닙니다.');
+                    return;
+                }
+
+                this.apiKey = key;
+                localStorage.setItem('gemini_api_key', key);
+                this.showChatInterface();
+            }
+
+            showChatInterface() {
+                this.apiKeyContainer.style.display = 'none';
+                this.chatContainer.style.display = 'flex';
+                this.setInitialTime();
+                this.messageInput.focus();
+            }
+
+            setInitialTime() {
+                const initialTimeElement = document.getElementById('initialTime');
+                if (initialTimeElement) {
+                    initialTimeElement.textContent = this.getCurrentTime();
+                }
+            }
+
+            getCurrentTime() {
+                const now = new Date();
+                return now.toLocaleTimeString('ko-KR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            }
+
+            async sendMessage() {
+                const message = this.messageInput.value.trim();
+                
+                if (!message) {
+                    this.showError('메시지를 입력해주세요.');
+                    return;
+                }
+
+                // 사용자 메시지 표시
+                this.addMessage(message, 'user');
+                this.messageInput.value = '';
+                this.charCount.textContent = '0';
+                this.charCount.style.color = '#6c757d';
+                
+                // UI 비활성화
+                this.setInputState(false);
+                this.showLoading(true);
+
+                try {
+                    const response = await this.callGeminiAPI(message);
+                    this.addMessage(response, 'bot');
+                    // 메시지 전송 후 파일 정리
+                    this.clearFiles();
+                } catch (error) {
+                    console.error('Error:', error);
+                    this.addMessage(
+                        `죄송합니다. 오류가 발생했습니다: ${error.message}`, 
+                        'bot', 
+                        true
+                    );
+                } finally {
+                    this.setInputState(true);
+                    this.showLoading(false);
+                    this.messageInput.focus();
+                }
+            }
+
+            handleFileUpload(files) {
+                Array.from(files).forEach(file => {
+                    if (this.isValidFile(file)) {
+                        this.currentFiles.push(file);
+                        this.displayUploadedFile(file);
+                    } else {
+                        this.showError(`지원하지 않는 파일 형식입니다: ${file.name}`);
+                    }
+                });
+                this.fileInput.value = ''; // Reset input
+            }
+
+            isValidFile(file) {
+                const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                
+                if (!validTypes.includes(file.type)) {
+                    return false;
+                }
+                
+                if (file.size > maxSize) {
+                    this.showError(`파일 크기가 너무 큽니다: ${file.name} (10MB 이하만 가능)`);
+                    return false;
+                }
+                
+                return true;
+            }
+
+            displayUploadedFile(file) {
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'uploaded-file';
+                fileDiv.dataset.fileName = file.name;
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'file-info';
+                
+                const fileIcon = document.createElement('div');
+                fileIcon.className = 'file-icon';
+                fileIcon.textContent = this.getFileIcon(file.type);
+                
+                const fileName = document.createElement('span');
+                fileName.textContent = file.name;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-file';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = () => this.removeFile(file.name);
+                
+                fileInfo.appendChild(fileIcon);
+                fileInfo.appendChild(fileName);
+                fileDiv.appendChild(fileInfo);
+                fileDiv.appendChild(removeBtn);
+                
+                // 이미지 미리보기
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'file-preview';
+                        img.style.maxHeight = '100px';
+                        fileDiv.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                
+                this.uploadedFiles.appendChild(fileDiv);
+            }
+
+            getFileIcon(fileType) {
+                if (fileType === 'application/pdf') return '📄';
+                if (fileType.startsWith('image/')) return '🖼️';
+                return '📁';
+            }
+
+            removeFile(fileName) {
+                this.currentFiles = this.currentFiles.filter(file => file.name !== fileName);
+                const fileDiv = this.uploadedFiles.querySelector(`[data-file-name="${fileName}"]`);
+                if (fileDiv) {
+                    fileDiv.remove();
+                }
+            }
+
+            clearFiles() {
+                this.currentFiles = [];
+                this.uploadedFiles.innerHTML = '';
+            }
+
+            async fileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const base64 = reader.result.split(',')[1];
+                        resolve(base64);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            async callGeminiAPI(message) {
+                const parts = [{ text: message }];
+                
+                // 파일이 있으면 추가
+                for (const file of this.currentFiles) {
+                    try {
+                        const base64Data = await this.fileToBase64(file);
+                        parts.push({
+                            inline_data: {
+                                mime_type: file.type,
+                                data: base64Data
+                            }
+                        });
+                    } catch (error) {
+                        console.error('파일 처리 오류:', error);
+                    }
+                }
+
+                const requestBody = {
+                    contents: [{
+                        parts: parts
+                    }]
+                };
+
+                const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    return data.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error('응답 형식이 올바르지 않습니다.');
+                }
+            }
+
+            addMessage(content, sender, isError = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}-message`;
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                
+                if (isError) {
+                    messageContent.classList.add('error-message');
+                }
+                
+                if (sender === 'user') {
+                    messageContent.innerHTML = `<strong>나:</strong> ${this.escapeHtml(content)}`;
+                } else {
+                    messageContent.innerHTML = `<strong>AI:</strong> ${this.formatBotMessage(content)}`;
+                }
+                
+                const messageTime = document.createElement('div');
+                messageTime.className = 'message-time';
+                messageTime.textContent = this.getCurrentTime();
+                
+                messageDiv.appendChild(messageContent);
+                messageDiv.appendChild(messageTime);
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            formatBotMessage(content) {
+                return this.escapeHtml(content)
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/`(.*?)`/g, '<code style="background: #f8f9fa; padding: 2px 4px; border-radius: 3px;">$1</code>')
+                    .replace(/\n/g, '<br>');
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            setInputState(enabled) {
+                this.messageInput.disabled = !enabled;
+                this.sendButton.disabled = !enabled;
+                
+                if (enabled) {
+                    this.messageInput.focus();
+                }
+            }
+
+            showLoading(show) {
+                this.loading.style.display = show ? 'block' : 'none';
+            }
+
+            scrollToBottom() {
+                setTimeout(() => {
+                    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+                }, 100);
+            }
+
+            showError(message) {
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #dc3545;
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    z-index: 1000;
+                    animation: fadeIn 0.3s ease-in;
+                `;
+                errorDiv.textContent = message;
+                
+                document.body.appendChild(errorDiv);
+                
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 3000);
+            }
+        }
+
+        // 페이지 로드 시 챗봇 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            new GeminiChatbot();
+        });
+    </script>
+</body>
+</html>
